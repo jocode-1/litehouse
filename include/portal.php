@@ -1,16 +1,12 @@
 <?php 
 
 include("db_connection.php");
-// session_start();
+session_start();
 
-// use Firebase\Jwt;
-// use Firebase\Key;
+use Firebase\Jwt;
+use Firebase\Key;
 
-// require 'vendor/autoload.php';
-
-// header("HTTP/1.1 200 OK");
-
-
+require 'vendor/autoload.php';
 
 $database = new database();
 $conn = $database->getConnection();
@@ -50,25 +46,32 @@ class Portalutility {
 
     public function createRandomIds() {
 
-        $random = '';
-
-        $random = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz", 5), 0, 5);
+        $random = substr(str_shuffle(str_repeat("0123456789", 5)), 0, 5);
 
         return $random;
     }
 
+    public function createUniqueID() {
 
-    public function insertLecturer($conn, $lecturer_name, $lecturer_email, $lecturer_address, $lecturer_title, $phone_number, $status) {
+        $unique = "";
+
+        $unique = "LEC" . $this->createRandomIds();
+
+        return $unique;
+    }
+
+
+    public function insertLecturer($conn, $lecturer_name, $lecturer_email, $lecturer_address, $lecturer_title, $phone_number) {
 
         $data = '';
-        $lecturer_id = $this->createRandomIds();
+        $lecturer_id = $this->createUniqueID();
 
-        $query = "INSERT INTO `lecturer` (`lecturer_id`, `lecturer_name`, `lecturer_email`, `lecturer_address`, `lecturer_title`, `phone_number`, `status`) 
-        VALUES ($lecturer_id, $lecturer_name, $lecturer_email, $lecturer_address, $lecturer_title, $phone_number, 'A')";
+        $query = "INSERT INTO lecturer (`lecturer_id`, `lecturer_name`, `lecturer_email`, `lecturer_address`, `lecturer_title`, `phone_number`, `status`) 
+        VALUES('" . $lecturer_id . "', '" . $lecturer_name . "', '" . $lecturer_email . "', '" . $lecturer_address . "', '" . $lecturer_title . "', '" . $phone_number . "', 'A')";
 
         if (mysqli_query($conn, $query)) {
 
-            $data = json_encode(array(header(),"message" => "success", "lecturer_id" => $lecturer_id), JSON_PRETTY_PRINT);
+            $data = json_encode(array("message" => "success", "lecturer_id" => $lecturer_id), JSON_PRETTY_PRINT);
 
         } else {
 
@@ -77,14 +80,12 @@ class Portalutility {
 
         return $data;
 
-
     }
-
 
 }
 
 
 $portal = new PortalUtility();
 
-echo $portal->insertLecturer($conn, "test", "test", "test", "test", "test");
+var_dump($portal->insertLecturer($conn, "test", "test", "test", "test", "test"));
 
