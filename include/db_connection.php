@@ -7,7 +7,7 @@ class database {
     private $username = "root";
     private $password = "";
     public $conn;
-    protected $key;
+    public $key = "328t723hjnvjswiuwu8yh###@(*#bj";
 
     public function getConnection() {
 
