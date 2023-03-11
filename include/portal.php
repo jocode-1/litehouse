@@ -49,7 +49,7 @@ class Portalutility {
 
     public function generateRandomIds() {
 
-        $random = substr(str_shuffle(str_repeat("abcdefghijk0123456789lmnopqrstuv", 7)), 0, 6);
+        $random = substr(str_shuffle(str_repeat("0123456789", 7)), 0, 6);
 
         return $random;
     }
@@ -69,7 +69,7 @@ class Portalutility {
 
         try {
             $mail->isSMTP();
-            $mail->Host       = 'smtp.example.com';
+            $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
             $mail->Username   = 'no-reply@litehouse.com';
             $mail->Password   = '1234567';
@@ -87,18 +87,19 @@ class Portalutility {
 
             echo "Message sent Successfully";
 
-        } catch (\Throwable $th) {
+        } catch (Exception $e) {
+            echo "Message not Sent Successfully: {$mail->ErrorInfo}";
             
         }
     }
 
-    public function createNewLecturer($conn, $lecturer_name, $lecturer_email, $lecturer_address, $lecturer_title, $phone_number) {
+    public function createNewLecturer($conn, $lecturer_name, $lecturer_email, $password, $lecturer_address, $lecturer_title, $phone_number) {
 
         $data = '';
         $lecturer_id = $this->createUniqueID();
 
-        $query = "INSERT INTO lecturer (`lecturer_id`, `lecturer_name`, `lecturer_email`, `lecturer_address`, `lecturer_title`, `phone_number`, `status`) 
-        VALUES('" . $lecturer_id . "', '" . $lecturer_name . "', '" . $lecturer_email . "', '" . $lecturer_address . "', '" . $lecturer_title . "', '" . $phone_number . "', 'A')";
+        $query = "INSERT INTO lecturer (`lecturer_id`, `lecturer_name`, `lecturer_email`, `password`, `lecturer_address`, `lecturer_title`, `phone_number`, `status`) 
+        VALUES('" . $lecturer_id . "', '" . $lecturer_name . "', '" . $lecturer_email . "', '" . $password . "', '" . $lecturer_address . "', '" . $lecturer_title . "', '" . $phone_number . "', 'A')";
 
         if (mysqli_query($conn, $query)) {
 
@@ -123,6 +124,7 @@ class Portalutility {
         VALUES ('" . $class_id . "', '" . $lecturer_id . "', '" . $class_code . "', '" . $class_name . "', '" . $class_description . "', 'A')";
 
         if(mysqli_query($conn, $query)) {
+
             $data = array("message" => "success", "class_id" => $class_id);
 
         } else {
@@ -154,25 +156,9 @@ class Portalutility {
         $data = array("message" => "error", "lecture_id" => "null");
 
        }
+
+       return $data;
     } 
-
-
-    // public function createLectureLink($conn, $lecturer_id, $expiration = 3600) {
-        
-    //     $expires = time() + $expiration;
-    //     $url = "http://localhost/litehouse/.{$lecturer_id}.3600 .'";
-
-    //     $query = "SELECT * FROM lecturer WHERE `lecturer_id` = '$lecturer_id'";
-    //     $result = mysqli_query($conn, $query);
-	// 	$data  = mysqli_fetch_array($result);
-
-    //     // $lecturer = $data["lecturer_id"];
-
-    //     $link = $url . '?lecturer_id=' . $lecturer_id . '&expires=' . $expires;
-          
-    //         return $link;
-          
-    // }
 
     public function createLectureLink($conn, $lecturer_id) {
         $expiration = 2500;
@@ -187,7 +173,26 @@ class Portalutility {
     
         return $link;
     }
-    
+
+    public function createCourses($conn, $lecturer_id, $course_code, $course_title, $course_description) {
+
+        $data = '';
+        $course_id = $this->generateRandomIds();
+
+        $query = "INSERT INTO `courses` (`course_id`, `lecturer_id`, `course_code`, `course_title`, `course_description`, `status`) VALUES ('" . $course_id . "', '" . $lecturer_id . "', '" . $course_code . "', '" . $course_title . "', '" . $course_description . "', 'A')";
+
+        if(mysqli_query($conn, $query)) {
+            $data = array("message" => "success", "course_id" => $course_id);
+        } else {
+            $data = array("message" => "error", "course_id" => "null");
+        }
+
+        return $data;
+    }
+
+    public function loginLecturer($conn, $lecturer_email, $password) {
+
+    }
 
 }
 
@@ -196,4 +201,5 @@ $portal = new PortalUtility();
 
 // $portal->insertLecturer($conn, "test", "test", "test", "test", "test");
 // $portal->createLectures($conn, "LEC83593", "test", "test", "test", "test");
+// var_dump($portal->createCourses($conn, "LEC83593", "test", "test", "test"));
 
