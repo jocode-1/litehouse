@@ -14,14 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$data = json_decode(@file_get_contents("php://input"), true);
-$lecturer_id = trim(mysqli_real_escape_string($conn, !empty($data['lecturer_id']) ? $data['lecturer_id'] : ""));
-$course_code = trim(mysqli_real_escape_string($conn, !empty($data['course_code']) ? $data['course_code'] : ""));
-$course_title = trim(mysqli_real_escape_string($conn, !empty($data['course_title']) ? $data['course_title'] : ""));
-$course_description = trim(mysqli_real_escape_string($conn, !empty($data['course_description']) ? $data['course_description'] : ""));
+$lecturer_email = !empty($_POST['lecturer_id']) ? trim($_POST['lecturer_id']) : "";
+$course_code = !empty($_POST['course_code']) ? trim($_POST['course_code']) : "";
 
 if (empty($lecturer_id) || empty($course_code) || empty($course_title) || empty($course_description)) {
-    http_response_code(400);
+    http_response_code(400); 
     echo json_encode(array("error" => "Missing required input"));
     exit;
 }

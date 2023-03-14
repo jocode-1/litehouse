@@ -63,35 +63,6 @@ class Portalutility {
         return $unique;
     }
 
-    public function sendConfirmationMessage($lecturer_name, $lecturer_email ) {
-
-        $mail = new PHPMailer(true);
-
-        try {
-            $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = 'no-reply@litehouse.com';
-            $mail->Password   = '1234567';
-            $mail->SMTPSecure = 'SSL';
-            $mail->Port       = 465;
-
-            $mail->setFrom('no-reply@litehouse.com', 'Confirmation Email');
-			$mail->addAddress($lecturer_email, $lecturer_name);
-
-            $mail->isHTML(true);
-            $mail->Subject = 'Confirmation Email';
-            $mail->Body    = '<p>Thank you for registering to our website!</p>';
-
-            $mail->send();
-
-            echo "Message sent Successfully";
-
-        } catch (Exception $e) {
-            echo "Message not Sent Successfully: {$mail->ErrorInfo}";
-            
-        }
-    }
 
     public function createNewLecturer($conn, $lecturer_name, $lecturer_email, $password, $lecturer_address, $lecturer_title, $phone_number) {
 
@@ -113,6 +84,36 @@ class Portalutility {
 
         return $data;
 
+    }
+
+    public function sendConfirmationMessage($lecturer_name, $lecturer_email ) {
+
+        $mail = new PHPMailer(true);
+
+        try {
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'akintolajohn41@gmail.com';
+            $mail->Password   = 'Cougar@123';
+            $mail->SMTPSecure = 'SSL';
+            $mail->Port       = 465;
+
+            $mail->setFrom('no-reply@litehouse.com', 'Confirmation Email');
+			$mail->addAddress($lecturer_email, $lecturer_name);
+
+            $mail->isHTML(true);
+            $mail->Subject = 'Confirmation Email';
+            $mail->Body    = '<p>Thank you for registering to our website!</p>';
+
+            $mail->send();
+
+            echo "Message sent Successfully";
+
+        } catch (Exception $e) {
+            echo "Message not Sent Successfully: {$mail->ErrorInfo}";
+            
+        }
     }
 
     public function createClass($conn, $lecturer_id, $class_code, $class_name, $class_description) {
@@ -141,8 +142,6 @@ class Portalutility {
         $data = "";
         $lecture_id = $this->generateRandomIds();
         $lecture_url = $this->createLectureLink($conn, $lecturer_id);
-
-        echo $lecture_url;
 
        $query = "INSERT INTO lectures (`lecturer_id`, `lecture_id`, `course_id`, `course_code`, `lecture_title`, `lecture_description`, `lecture_url`, `status`)
        VALUES ('" . $lecturer_id . "', '" . $lecture_id . "', '" . $course_id . "', '" . $course_code . "', '" . $lecturer_title . "', '" . $lecture_description . "', '" . $lecture_url . "', 'A')";
@@ -192,14 +191,96 @@ class Portalutility {
 
     public function loginLecturer($conn, $lecturer_email, $password) {
 
+        // $data = "";
+
+        $query = "SELECT lecturer_email, password FROM lecturer WHERE lecturer_email = '" . $lecturer_email . "' and password = '" . $password . "'";
+        $result = mysqli_query($conn, $query);
+        $data = mysqli_fetch_array($result);
+        if($data > 0){
+            $_SESSION['login_user'] = $lecturer_email;
+			$json[] = $data;
+        } else {
+            $json =[0];
+        }
+
+        return json_encode($json);
+
     }
+
+    public function fetchClassByLecturerId($conn, $lecturer_id) {
+
+        $data = array();
+        $query = "SELECT * FROM `class` WHERE `lecturer_id` = '$lecturer_id'";
+        $result = mysqli_query($conn, $query);
+
+        while ($a = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+            $data[] = $a;
+        }
+
+        return $data;
+    }
+
+    public function fetchCourseByLecturerId($conn, $lecturer_id) {
+
+        $data = array();
+        $query = "SELECT * FROM `courses` WHERE `lecturer_id` = '$lecturer_id'";
+        $result = mysqli_query($conn, $query);
+
+        while ($a = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+            $data[] = $a;
+        }
+
+        return $data;
+
+    }
+
+    public function fetchLectureByLecturerId($conn, $lecturer_id) {
+
+        $data = array();
+        $query = "SELECT * FROM `lectures` WHERE `lecturer_id` = '$lecturer_id'";
+        $result = mysqli_query($conn, $query);
+
+        while ($a = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+            $data[] = $a;
+        }
+
+        return $data;
+
+    }
+
+    public function CreateAssignment($conn, $lecturer_id, $course_id, $course_code, $assignment_title, $submission_date ) {
+
+        $data = "";
+        $assignment_id = $this->generateRandomIds();
+        $assignment_url = "http://localhost/assignment.php?" . $lecturer_id . "&" . $course_id;
+        echo $assignment_url;
+
+       $query = "INSERT INTO assignment (`assignment_id`, `lecturer_id`, `course_id`, `course_code`, `assignment_title`, `assignment_url`, `submission_date`, `status`)
+       VALUES ('" . $assignment_id . "', '" . $lecturer_id . "', '" . $course_id . "', '" . $course_code . "', '" . $assignment_title . "', '" . $assignment_url . "', '" . $submission_date . "', 'A')";
+
+       if(mysqli_query($conn, $query)) {
+
+        $data = array("message" => "success", "assignment_id" => $assignment_id, "course_id" => $course_id, "lecturer_id" => $lecturer_id);
+
+       } else {
+
+        $data = array("message" => "error", "lecture_id" => "null");
+
+       }
+
+       return $data;
+    }
+
+
 
 }
 
 
 $portal = new PortalUtility();
 
+// var_dump($portal->loginLecturer($conn, "akintolajohn41@gmail.com", "11111"));
 // $portal->insertLecturer($conn, "test", "test", "test", "test", "test");
 // $portal->createLectures($conn, "LEC83593", "test", "test", "test", "test");
 // var_dump($portal->createCourses($conn, "LEC83593", "test", "test", "test"));
+// var_dump($portal->CreateAssignment($conn, "LEC83593", "test", "test", "test", "test"));
 
