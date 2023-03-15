@@ -9,6 +9,7 @@ use Firebase\Jwt\Jwt;
 // use Firebase\Key\Key;
 
 use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 $database = new database();
@@ -74,7 +75,7 @@ class Portalutility {
 
         if (mysqli_query($conn, $query)) {
 
-            $this->sendConfirmationMessage($lecturer_name, $lecturer_email );
+            $this->sendConfirmationMessage();
             $data = json_encode(array("message" => "success", "lecturer_id"=>$lecturer_id), JSON_PRETTY_PRINT);
 
         } else {
@@ -86,21 +87,23 @@ class Portalutility {
 
     }
 
-    public function sendConfirmationMessage($lecturer_name, $lecturer_email ) {
+    public function sendConfirmationMessage() {
 
         $mail = new PHPMailer(true);
+        // ;
 
         try {
+            $mail->SMTPDebug  = 3;
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
             $mail->Username   = 'akintolajohn41@gmail.com';
-            $mail->Password   = 'Cougar@123';
-            $mail->SMTPSecure = 'SSL';
+            $mail->Password   = 'Cougar@123..?';
+            $mail->SMTPSecure = 'tls';
             $mail->Port       = 465;
 
-            $mail->setFrom('no-reply@litehouse.com', 'Confirmation Email');
-			$mail->addAddress($lecturer_email, $lecturer_name);
+            $mail->setFrom('akintolajohn41@gmail.com', 'Confirmation Email');
+			$mail->addAddress("akintolaolalekan41@gmail.com");
 
             $mail->isHTML(true);
             $mail->Subject = 'Confirmation Email';
@@ -141,7 +144,7 @@ class Portalutility {
 
         $data = "";
         $lecture_id = $this->generateRandomIds();
-        $lecture_url = $this->createLectureLink($conn, $lecturer_id);
+        $lecture_url = "http://localhost/lecture.php?" . $lecturer_id . "&" . $course_code;
 
        $query = "INSERT INTO lectures (`lecturer_id`, `lecture_id`, `course_id`, `course_code`, `lecture_title`, `lecture_description`, `lecture_url`, `status`)
        VALUES ('" . $lecturer_id . "', '" . $lecture_id . "', '" . $course_id . "', '" . $course_code . "', '" . $lecturer_title . "', '" . $lecture_description . "', '" . $lecture_url . "', 'A')";
@@ -159,19 +162,19 @@ class Portalutility {
        return $data;
     } 
 
-    public function createLectureLink($conn, $lecturer_id) {
-        $expiration = 2500;
-        $expires = time() + $expiration;
+    // public function createLectureLink($conn, $lecturer_id) {
+    //     $expiration = 2500;
+    //     $expires = time() + $expiration;
     
-        $query = "SELECT * FROM lecturer WHERE `lecturer_id` = '$lecturer_id'";
-        $result = mysqli_query($conn, $query);
-        $data = mysqli_fetch_array($result);
+    //     $query = "SELECT * FROM lecturer WHERE `lecturer_id` = '$lecturer_id'";
+    //     $result = mysqli_query($conn, $query);
+    //     $data = mysqli_fetch_array($result);
 
-        $url = "http://localhost/litehouse/{$lecturer_id}";
-        $link = $url . '&expires=' . $expires;
+    //     $url = "http://localhost/litehouse/{$lecturer_id}";
+    //     $link = $url . '&expires=' . $expires;
     
-        return $link;
-    }
+    //     return $link;
+    // }
 
     public function createCourses($conn, $lecturer_id, $course_code, $course_title, $course_description) {
 
@@ -205,6 +208,29 @@ class Portalutility {
 
         return json_encode($json);
 
+    }
+
+    public function CreateAssignment($conn, $lecturer_id, $course_id, $course_code, $assignment_title, $submission_date ) {
+
+        $data = "";
+        $assignment_id = $this->generateRandomIds();
+        $assignment_url = "http://localhost/assignment.php?" . $lecturer_id . "&" . $course_id;
+        echo $assignment_url;
+
+       $query = "INSERT INTO assignment (`assignment_id`, `lecturer_id`, `course_id`, `course_code`, `assignment_title`, `assignment_url`, `submission_date`, `status`)
+       VALUES ('" . $assignment_id . "', '" . $lecturer_id . "', '" . $course_id . "', '" . $course_code . "', '" . $assignment_title . "', '" . $assignment_url . "', '" . $submission_date . "', 'A')";
+
+       if(mysqli_query($conn, $query)) {
+
+        $data = array("message" => "success", "assignment_id" => $assignment_id, "course_id" => $course_id, "lecturer_id" => $lecturer_id);
+
+       } else {
+
+        $data = array("message" => "error", "lecture_id" => "null");
+
+       }
+
+       return $data;
     }
 
     public function fetchClassByLecturerId($conn, $lecturer_id) {
@@ -248,27 +274,109 @@ class Portalutility {
 
     }
 
-    public function CreateAssignment($conn, $lecturer_id, $course_id, $course_code, $assignment_title, $submission_date ) {
+   
 
-        $data = "";
-        $assignment_id = $this->generateRandomIds();
-        $assignment_url = "http://localhost/assignment.php?" . $lecturer_id . "&" . $course_id;
-        echo $assignment_url;
+    /********************
+     * BUTTONS FUNCTIONS FOR
+     * 
+     * ASSIGNMENT
+     * CLASS
+     * COURSES
+     * LECTURE
+     * 
+    */
+    
+    public function viewButtonAssignment($conn, $lecturer_id, $assignment_id){
 
-       $query = "INSERT INTO assignment (`assignment_id`, `lecturer_id`, `course_id`, `course_code`, `assignment_title`, `assignment_url`, `submission_date`, `status`)
-       VALUES ('" . $assignment_id . "', '" . $lecturer_id . "', '" . $course_id . "', '" . $course_code . "', '" . $assignment_title . "', '" . $assignment_url . "', '" . $submission_date . "', 'A')";
+        $data = array();
+        $query = "SELECT * FROM `assignment` WHERE `lecturer_id` = '$lecturer_id' AND `assignment_id` = '$assignment_id'";
+        $result = mysqli_query($conn, $query);
 
-       if(mysqli_query($conn, $query)) {
+        while ($a = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+            $data[] = $a;
+        }
 
-        $data = array("message" => "success", "assignment_id" => $assignment_id, "course_id" => $course_id, "lecturer_id" => $lecturer_id);
+        return $data;
+    }
 
-       } else {
+    public function updateAssignment(){
 
-        $data = array("message" => "error", "lecture_id" => "null");
+    }
 
-       }
+    public function deleteAssignment(){
 
-       return $data;
+    }
+
+    //*****   CLASS BUTTONS *****//
+
+    public function viewButtonClass($conn, $lecturer_id, $class_id){
+
+        $data = array();
+        $query = "SELECT * FROM `class` WHERE `lecturer_id` = '$lecturer_id' AND `class_id` = '$class_id'";
+        $result = mysqli_query($conn, $query);
+
+        while ($a = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+            $data[] = $a;
+        }
+
+        return $data;
+
+    }
+
+    public function updateClass(){
+
+    }
+
+    public function deleteClass(){
+       
+    }
+
+    //*****   CLASS COURSES *****//
+
+    public function viewButtonCourses($conn, $lecturer_id, $course_id){
+
+        $data = array();
+        $query = "SELECT * FROM `courses` WHERE `lecturer_id` = '$lecturer_id' AND `course_id` = '$course_id'";
+        $result = mysqli_query($conn, $query);
+
+        while ($a = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+            $data[] = $a;
+        }
+
+        return $data;
+
+    }
+ 
+    public function updateCourses(){
+ 
+    }
+ 
+    public function deletecourses(){
+        
+    }
+
+    //*****   CLASS LECTURE *****//
+
+    public function viewButtonLectures($conn, $lecturer_id, $lecture_id){
+
+        $data = array();
+        $query = "SELECT * FROM `lectures` WHERE `lecturer_id` = '$lecturer_id' AND `lecture_id` = '$lecture_id'";
+        $result = mysqli_query($conn, $query);
+
+        while ($a = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+            $data[] = $a;
+        }
+
+        return $data;
+
+    }
+ 
+    public function updateLectures(){
+ 
+    }
+ 
+    public function deleteLectures(){
+        
     }
 
 
@@ -280,7 +388,8 @@ $portal = new PortalUtility();
 
 // var_dump($portal->loginLecturer($conn, "akintolajohn41@gmail.com", "11111"));
 // $portal->insertLecturer($conn, "test", "test", "test", "test", "test");
-// $portal->createLectures($conn, "LEC83593", "test", "test", "test", "test");
+// var_dump($portal->createLectures($conn, "LEC83593", "test", "test", "test", "test"));
 // var_dump($portal->createCourses($conn, "LEC83593", "test", "test", "test"));
 // var_dump($portal->CreateAssignment($conn, "LEC83593", "test", "test", "test", "test"));
+// var_dump($portal->viewButtonAssignment($conn, "LEC43893", "901356"));
 

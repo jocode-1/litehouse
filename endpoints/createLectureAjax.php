@@ -8,17 +8,19 @@ require_once("../include/portal.php");
 $portal = new PortalUtility();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    
     http_response_code(405); 
     echo json_encode(array("error" => "Only POST method is allowed"));
     exit;
 }
 
-$lecturer_id = !empty($_POST['lecturer_id']) ? trim($_POST['lecturer_id']) : "";
-$course_id = !empty($_POST['course_id']) ? trim($_POST['course_id']) : "";
-$course_code = !empty($_POST['course_code']) ? trim($_POST['course_code']) : "";
-$lecture_title = !empty($_POST['lecture_title']) ? trim($_POST['lecture_title']) : "";
-$lecture_description = !empty($_POST['lecture_description']) ? trim($_POST['lecture_description']) : "";
+$data = json_decode(@file_get_contents("php://input"), true);
+
+$lecturer_id = trim(mysqli_real_escape_string($conn, !empty($data['lecturer_id']) ? $data['lecturer_id'] : ""));
+$course_id = trim(mysqli_real_escape_string($conn, !empty($data['course_id']) ? $data['course_id'] : ""));
+$course_code = trim(mysqli_real_escape_string($conn, !empty($data['course_code']) ? $data['course_code'] : ""));
+$lecture_title = trim(mysqli_real_escape_string($conn, !empty($data['lecture_title']) ? $data['lecture_title'] : ""));
+$lecture_description = trim(mysqli_real_escape_string($conn, !empty($data['lecture_description']) ? $data['lecture_description'] : ""));
+
 
 if (empty($lecturer_id) || empty($course_id) || empty($course_code) || empty($lecture_title) || empty($lecture_description)) {
     http_response_code(400); 
