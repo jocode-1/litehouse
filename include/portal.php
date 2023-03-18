@@ -299,7 +299,17 @@ class Portalutility {
         return $data;
     }
 
-    public function updateAssignment(){
+    public function updateAssignment($conn, $lecturer_id, $assignment_id, $course_code, $assignment_title, $submission_date){
+
+        $data = "";
+        $query = "UPDATE `assignment` SET `course_code`='$course_code', `assignment_title`='$assignment_title', `submission_date`='$submission_date', `status`='S' WHERE `lecturer_id`= '$lecturer_id' AND `assignment_id` = '$assignment_id'";
+
+        if(mysqli_query($conn, $query)) {
+            $data = array("message" => "success");
+        } else {
+            $data = array("message" => "error");
+        }
+
 
     }
 
@@ -378,6 +388,10 @@ class Portalutility {
     public function deleteLectures(){
         
     }
+
+    /**********
+     * END OF BUTTON FUNCTION
+     */
 
 
 
